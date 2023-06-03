@@ -37,6 +37,7 @@
 #include "picoprobe_config.h"
 #include "probe.h"
 #include "cdc_uart.h"
+#include "cdc_sump.h"
 #include "get_serial.h"
 #include "led.h"
 #include "DAP.h"
@@ -47,19 +48,34 @@
 static uint8_t TxDataBuffer[CFG_TUD_HID_EP_BUFSIZE];
 static uint8_t RxDataBuffer[CFG_TUD_HID_EP_BUFSIZE];
 
-#define THREADED 1
+#define THREADED 0
 
 #define UART_TASK_PRIO (tskIDLE_PRIORITY + 3)
 #define TUD_TASK_PRIO  (tskIDLE_PRIORITY + 2)
 #define DAP_TASK_PRIO  (tskIDLE_PRIORITY + 1)
 
-static TaskHandle_t dap_taskhandle, tud_taskhandle;
+static TaskHandle_t dap_taskhandle, tud_taskhandle, sump_taskhandle;
 
 void usb_thread(void *ptr)
 {
     do {
         tud_task();
 #ifdef PICOPROBE_USB_CONNECTED_LED
+        if (!gpio_get(PICOPROBE_USB_CONNECTED_LED) && tud_ready())
+            gpio_put(PICOPROBE_USB_CONNECTED_LED, 1);
+        else
+            gpio_put(PICOPROBE_USB_CONNECTED_LED, 0);
+#endif
+        // Trivial delay to save power
+        vTaskDelay(1);
+    } while (1);
+}
+
+void sump_thread(void *ptr)
+{
+    do {
+        cdc_sump_task();
+#ifdef PICOPROBE_SUMP_CONNECTED_LED
         if (!gpio_get(PICOPROBE_USB_CONNECTED_LED) && tud_ready())
             gpio_put(PICOPROBE_USB_CONNECTED_LED, 1);
         else
@@ -96,6 +112,7 @@ int main(void) {
     board_init();
     usb_serial_init();
     cdc_uart_init();
+    cdc_sump_init();
     tusb_init();
 
     DAP_Setup();
@@ -108,6 +125,7 @@ int main(void) {
         /* UART needs to preempt USB as if we don't, characters get lost */
         xTaskCreate(cdc_thread, "UART", configMINIMAL_STACK_SIZE, NULL, UART_TASK_PRIO, &uart_taskhandle);
         xTaskCreate(usb_thread, "TUD", configMINIMAL_STACK_SIZE, NULL, TUD_TASK_PRIO, &tud_taskhandle);
+        xTaskCreate(usb_thread, "SUMP", configMINIMAL_STACK_SIZE, NULL, TUD_TASK_PRIO, &sump_taskhandle);
         /* Lowest priority thread is debug - need to shuffle buffers before we can toggle swd... */
         xTaskCreate(dap_thread, "DAP", configMINIMAL_STACK_SIZE, NULL, DAP_TASK_PRIO, &dap_taskhandle);
         vTaskStartScheduler();
@@ -116,6 +134,7 @@ int main(void) {
     while (!THREADED) {
         tud_task();
         cdc_task();
+        cdc_sump_task();
 
 #if (PICOPROBE_DEBUG_PROTOCOL == PROTO_DAP_V2)
         if (tud_vendor_available()) {

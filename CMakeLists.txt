@@ -15,6 +15,7 @@ add_executable(picoprobe
         src/usb_descriptors.c
         src/probe.c
         src/cdc_uart.c
+        src/cdc_sump.c
         src/get_serial.c
         src/sw_dp_pio.c
 )
@@ -51,10 +52,14 @@ target_link_libraries(picoprobe PRIVATE
         tinyusb_device
         tinyusb_board
         hardware_pio
+        hardware_clocks
+        hardware_dma
+        hardware_pwm
         FreeRTOS-Kernel
         FreeRTOS-Kernel-Heap1
 )
 
 pico_set_binary_type(picoprobe copy_to_ram)
+#pico_set_binary_type(picoprobe no_flash)
 
 pico_add_extra_outputs(picoprobe)
