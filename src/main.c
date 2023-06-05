@@ -48,11 +48,12 @@
 static uint8_t TxDataBuffer[CFG_TUD_HID_EP_BUFSIZE];
 static uint8_t RxDataBuffer[CFG_TUD_HID_EP_BUFSIZE];
 
-#define THREADED 0
+#define THREADED 1
 
 #define UART_TASK_PRIO (tskIDLE_PRIORITY + 3)
 #define TUD_TASK_PRIO  (tskIDLE_PRIORITY + 2)
 #define DAP_TASK_PRIO  (tskIDLE_PRIORITY + 1)
+#define SUMP_TASK_PRIO  (tskIDLE_PRIORITY + 3)
 
 static TaskHandle_t dap_taskhandle, tud_taskhandle, sump_taskhandle;
 
@@ -112,7 +113,7 @@ int main(void) {
     board_init();
     usb_serial_init();
     cdc_uart_init();
-    //cdc_sump_init();
+    cdc_sump_init();
     tusb_init();
 
     DAP_Setup();
@@ -125,7 +126,7 @@ int main(void) {
         /* UART needs to preempt USB as if we don't, characters get lost */
         xTaskCreate(cdc_thread, "UART", configMINIMAL_STACK_SIZE, NULL, UART_TASK_PRIO, &uart_taskhandle);
         xTaskCreate(usb_thread, "TUD", configMINIMAL_STACK_SIZE, NULL, TUD_TASK_PRIO, &tud_taskhandle);
-        xTaskCreate(usb_thread, "SUMP", configMINIMAL_STACK_SIZE, NULL, TUD_TASK_PRIO, &sump_taskhandle);
+        xTaskCreate(sump_thread, "SUMP", configMINIMAL_STACK_SIZE, NULL, SUMP_TASK_PRIO, &sump_taskhandle);
         /* Lowest priority thread is debug - need to shuffle buffers before we can toggle swd... */
         xTaskCreate(dap_thread, "DAP", configMINIMAL_STACK_SIZE, NULL, DAP_TASK_PRIO, &dap_taskhandle);
         vTaskStartScheduler();
@@ -134,7 +135,7 @@ int main(void) {
     while (!THREADED) {
         tud_task();
         cdc_task();
-        //cdc_sump_task();
+        cdc_sump_task();
 
 #if (PICOPROBE_DEBUG_PROTOCOL == PROTO_DAP_V2)
         if (tud_vendor_available()) {
