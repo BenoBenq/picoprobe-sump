@@ -47,7 +47,7 @@ tusb_desc_device_t const desc_device =
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
     .idVendor           = 0x2E8A, // Pi
-    .idProduct          = 0x000f, // CMSIS-DAP Debug Probe
+    .idProduct          = 0x000c, // CMSIS-DAP Debug Probe
     .bcdDevice          = 0x0101, // Version 01.01
     .iManufacturer      = 0x01,
     .iProduct           = 0x02,
@@ -71,8 +71,8 @@ enum
   ITF_NUM_PROBE, // Old versions of Keil MDK only look at interface 0
   ITF_NUM_CDC_COM,
   ITF_NUM_CDC_DATA,
-  ITF_NUM_CDC_SUMP_COM,
-  ITF_NUM_CDC_SUMP_DATA,
+  //ITF_NUM_CDC_SUMP_COM,
+  //ITF_NUM_CDC_SUMP_DATA,
   ITF_NUM_TOTAL
 };
 
@@ -88,7 +88,7 @@ enum
 #if (PICOPROBE_DEBUG_PROTOCOL == PROTO_DAP_V1)
 #define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
 #else
-#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_VENDOR_DESC_LEN + TUD_CDC_DESC_LEN)
+#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_VENDOR_DESC_LEN)// + TUD_CDC_DESC_LEN)
 #endif
 
 static uint8_t const desc_hid_report[] =
@@ -119,7 +119,7 @@ uint8_t const desc_configuration[] =
   // Interface 1 + 2
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_COM, 6, CDC_NOTIFICATION_EP_NUM, 64, CDC_DATA_OUT_EP_NUM, CDC_DATA_IN_EP_NUM, 64),
   // Interface 3 + 4
-  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_SUMP_COM, 7, CDC_SUMP_NOTIFICATION_EP_NUM, 64, CDC_SUMP_DATA_OUT_EP_NUM, CDC_SUMP_DATA_IN_EP_NUM, 64)
+  //TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_SUMP_COM, 6, CDC_SUMP_NOTIFICATION_EP_NUM, 64, CDC_SUMP_DATA_OUT_EP_NUM, CDC_SUMP_DATA_IN_EP_NUM, 64)
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR

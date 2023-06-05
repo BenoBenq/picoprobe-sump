@@ -112,7 +112,7 @@ int main(void) {
     board_init();
     usb_serial_init();
     cdc_uart_init();
-    cdc_sump_init();
+    //cdc_sump_init();
     tusb_init();
 
     DAP_Setup();
@@ -134,7 +134,7 @@ int main(void) {
     while (!THREADED) {
         tud_task();
         cdc_task();
-        cdc_sump_task();
+        //cdc_sump_task();
 
 #if (PICOPROBE_DEBUG_PROTOCOL == PROTO_DAP_V2)
         if (tud_vendor_available()) {
