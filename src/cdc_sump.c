@@ -51,12 +51,12 @@
 #define SAMPLING_DIVIDER	4	// minimal sysclk sampling divider
 
 #define SAMPLING_GPIO_FIRST	6
-#define SAMPLING_GPIO_LAST	21
+#define SAMPLING_GPIO_LAST	21 //21
 #define SAMPLING_BITS		(SAMPLING_GPIO_LAST-SAMPLING_GPIO_FIRST+1)
 #define SAMPLING_BYTES		((SAMPLING_BITS+7)/8)
 #define SAMPLING_GPIO_MASK	(((1 << SAMPLING_BITS) - 1) << SAMPLING_GPIO_FIRST)
 
-#define SAMPLING_GPIO_TEST	22
+#define SAMPLING_GPIO_TEST	26 //22
 
 #if SAMPLING_BITS != 8 && SAMPLING_BITS != 16
 #error "Correct sampling width (8 or 16 bits)"
