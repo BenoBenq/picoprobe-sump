@@ -37,6 +37,13 @@
 // Target reset config
 #define PROBE_PIN_RESET 0
 
+// PIO config for RGB_LED
+#define PICOPROBE_WRGB_LED_EXISTS 1
+#define RGB_LED_SM 3
+#define RGB_LED_PIO 0
+#define RGB_LED_PIN 16
+
+
 // UART config
 #define PICOPROBE_UART_TX 4
 #define PICOPROBE_UART_RX 5
@@ -44,6 +51,8 @@
 #define PICOPROBE_UART_BAUDRATE 115200
 
 #define PICOPROBE_USB_CONNECTED_LED 25
+
+
 
 #define PROBE_PRODUCT_STRING "Picoprobe (CMSIS-DAP)"
 

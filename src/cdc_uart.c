@@ -31,6 +31,8 @@
 
 #include "picoprobe_config.h"
 
+#include "led.h"
+
 TaskHandle_t uart_taskhandle;
 TickType_t last_wake, interval = 100;
 
@@ -43,8 +45,14 @@ static uint debounce_ticks = 5;
 #ifdef PICOPROBE_UART_TX_LED
 static uint tx_led_debounce;
 #endif
+#ifdef PICOPROBE_WRGB_LED_EXISTS  //Tx
+static uint tx_led_debounce;
+#endif
 
 #ifdef PICOPROBE_UART_RX_LED
+static uint rx_led_debounce;
+#endif
+#ifdef PICOPROBE_WRGB_LED_EXISTS  //Rx
 static uint rx_led_debounce;
 #endif
 
@@ -76,6 +84,10 @@ void cdc_task(void)
           gpio_put(PICOPROBE_UART_RX_LED, 1);
           rx_led_debounce = debounce_ticks;
 #endif
+#ifdef PICOPROBE_WRGB_LED_EXISTS  //Rx
+          put_rgb(0, 0, 0xff, 0);
+          rx_led_debounce = debounce_ticks;
+#endif
           written = MIN(tud_cdc_write_available(), rx_len);
           if (written > 0) {
             tud_cdc_write(rx_buf, written);
@@ -88,6 +100,12 @@ void cdc_task(void)
           else
             gpio_put(PICOPROBE_UART_RX_LED, 0);
 #endif
+#ifdef PICOPROBE_WRGB_LED_EXISTS  //Rx
+          if (rx_led_debounce)
+            rx_led_debounce--;
+          else
+            put_rgb(0, 0, 0, 0);
+#endif
         }
 
       /* Reading from a firehose and writing to a FIFO. */
@@ -96,6 +114,10 @@ void cdc_task(void)
         size_t tx_len;
 #ifdef PICOPROBE_UART_TX_LED
         gpio_put(PICOPROBE_UART_TX_LED, 1);
+        tx_led_debounce = debounce_ticks;
+#endif
+#ifdef PICOPROBE_WRGB_LED_EXISTS //Tx
+        put_rgb(0xff, 0, 0, 0);
         tx_led_debounce = debounce_ticks;
 #endif
         /* Batch up to half a FIFO of data - don't clog up on RX */
@@ -108,6 +130,12 @@ void cdc_task(void)
             tx_led_debounce--;
           else
             gpio_put(PICOPROBE_UART_TX_LED, 0);
+#endif
+#ifdef PICOPROBE_WRGB_LED_EXISTS  //Tx
+          if (tx_led_debounce)
+            tx_led_debounce--;
+          else
+            put_rgb(0, 0, 0, 0);
 #endif
       }
     } else if (was_connected) {
@@ -161,6 +189,10 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 #ifdef PICOPROBE_UART_RX_LED
     gpio_put(PICOPROBE_UART_TX_LED, 0);
     tx_led_debounce = 0;
+#endif
+#ifdef PICOPROBE_WRGB_LED_EXISTS
+    put_rgb(0, 0, 0, 0);
+    rx_led_debounce = 0;
 #endif
   } else
     vTaskResume(uart_taskhandle);
